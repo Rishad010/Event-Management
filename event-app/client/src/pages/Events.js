@@ -194,8 +194,8 @@ const Events = () => {
         </Typography>
         <Grid container spacing={3}>
           {[1, 2, 3].map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item}>
-              <Card>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={item}>
+              <Card sx={{ maxWidth: 280, mx: "auto" }}>
                 <Skeleton variant="rectangular" height={200} />
                 <CardContent>
                   <Skeleton variant="text" height={32} />
@@ -295,12 +295,14 @@ const Events = () => {
                 const isRegistered = registeredEventIds.has(event._id);
                 const imageUrl = getEventImage(event);
                 return (
-                  <Grid item xs={12} sm={6} md={4} key={event._id}>
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={event._id}>
                     <Card
                       sx={{
                         height: "100%",
+                        maxWidth: 280,
                         display: "flex",
                         flexDirection: "column",
+                        mx: "auto",
                       }}
                     >
                       <CardMedia
@@ -308,6 +310,11 @@ const Events = () => {
                         height="200"
                         image={imageUrl}
                         alt={event.title}
+                        sx={{ objectFit: "cover", bgcolor: "grey.200" }}
+                        onError={(e) => {
+                          e.target.src = "/placeholder-event.svg";
+                          e.target.onerror = null;
+                        }}
                       />
 
                       <CardContent

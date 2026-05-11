@@ -134,6 +134,11 @@ const Login = () => {
             </Button>
 
             <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <Link href="/forgot-password" variant="body2">
+                  Forgot password?
+                </Link>
+              </Typography>
               <Typography variant="body2" color="text.secondary">
                 Don't have an account?{" "}
                 <Link href="/register" variant="body2">
