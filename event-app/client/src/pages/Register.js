@@ -19,7 +19,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const { register } = useContext(AuthContext);
+  const { register, user: currentUser } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -154,6 +154,9 @@ const Register = () => {
               >
                 <MenuItem value="student">Student</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
+                {currentUser?.role === "superadmin" && (
+                  <MenuItem value="superadmin">Superadmin</MenuItem>
+                )}
               </Select>
             </FormControl>
 

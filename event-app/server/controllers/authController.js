@@ -70,13 +70,22 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    console.log("\n=== LOGIN ATTEMPT ===");
+    console.log("Email received:", email);
+    console.log(
+      "Password received (first 3 chars):",
+      password?.substring(0, 3) + "...",
+    );
+
     // Validate required fields
     if (!email || email.trim() === "") {
+      console.log("❌ Login failed: Email is empty");
       const error = new Error("Email is required");
       error.statusCode = 400;
       throw error;
     }
     if (!password || password.trim() === "") {
+      console.log("❌ Login failed: Password is empty");
       const error = new Error("Password is required");
       error.statusCode = 400;
       throw error;
@@ -84,17 +93,25 @@ exports.login = async (req, res, next) => {
 
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("❌ Login failed: User not found for email:", email);
       const error = new Error("Invalid credentials");
       error.statusCode = 400;
       throw error;
     }
 
+    console.log("✓ User found:", user.email, "Role:", user.role);
+
     const isMatch = await user.comparePassword(password);
+    console.log("✓ Password match result:", isMatch);
+
     if (!isMatch) {
+      console.log("❌ Login failed: Password mismatch");
       const error = new Error("Invalid credentials");
       error.statusCode = 400;
       throw error;
     }
+
+    console.log("✅ Login successful!");
 
     const token = generateToken(user);
     res.status(200).json({
@@ -123,15 +140,51 @@ exports.getAllUsers = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
   try {
     const { name, email, role } = req.body;
+    const targetUser = await User.findById(req.params.id);
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prevent users from modifying their own role
+    if (
+      req.user._id.toString() === req.params.id &&
+      role &&
+      role !== req.user.role
+    ) {
+      return res.status(403).json({ message: "Cannot change your own role" });
+    }
+
+    // Only superadmin can modify superadmin accounts
+    if (targetUser.role === "superadmin" && req.user.role !== "superadmin") {
+      return res
+        .status(403)
+        .json({ message: "Only superadmins can modify superadmin accounts" });
+    }
+
+    // Only superadmin can grant superadmin role
+    if (role === "superadmin" && req.user.role !== "superadmin") {
+      return res
+        .status(403)
+        .json({ message: "Only superadmins can grant superadmin privileges" });
+    }
+
+    // Only superadmin can grant admin role
+    if (
+      role === "admin" &&
+      req.user.role !== "superadmin" &&
+      targetUser.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Only superadmins can grant admin privileges" });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { name, email, role },
       { new: true },
     ).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
     res.status(200).json(user);
   } catch (error) {
@@ -141,12 +194,34 @@ exports.updateUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const targetUser = await User.findById(req.params.id);
 
-    if (!user) {
+    if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Prevent users from deleting themselves
+    if (req.user._id.toString() === req.params.id) {
+      return res
+        .status(403)
+        .json({ message: "Cannot delete your own account" });
+    }
+
+    // Only superadmin can delete superadmins
+    if (targetUser.role === "superadmin" && req.user.role !== "superadmin") {
+      return res
+        .status(403)
+        .json({ message: "Only superadmins can delete superadmin accounts" });
+    }
+
+    // Only superadmin can delete admin accounts
+    if (targetUser.role === "admin" && req.user.role !== "superadmin") {
+      return res
+        .status(403)
+        .json({ message: "Only superadmins can delete admin accounts" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);

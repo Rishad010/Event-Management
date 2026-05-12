@@ -46,7 +46,7 @@ import { AuthContext } from "../context/AuthContext";
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000/api";
 
 const UserManagement = () => {
-  const { token } = useContext(AuthContext);
+  const { token, user: currentUser } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -164,6 +164,9 @@ const UserManagement = () => {
   const totalUsers = users.length;
   const adminUsers = users.filter((user) => user.role === "admin").length;
   const studentUsers = users.filter((user) => user.role === "student").length;
+  const superadminUsers = users.filter(
+    (user) => user.role === "superadmin",
+  ).length;
 
   // Paginate users
   const paginatedUsers = users.slice(
@@ -178,8 +181,8 @@ const UserManagement = () => {
           User Management
         </Typography>
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          {[1, 2, 3].map((item) => (
-            <Grid item xs={12} sm={4} key={item}>
+          {[1, 2, 3, 4].map((item) => (
+            <Grid item xs={12} sm={6} md={3} key={item}>
               <Card>
                 <CardContent>
                   <Skeleton variant="text" height={32} />
@@ -226,7 +229,7 @@ const UserManagement = () => {
 
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -246,7 +249,7 @@ const UserManagement = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -266,7 +269,7 @@ const UserManagement = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -279,6 +282,24 @@ const UserManagement = () => {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Students
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <AdminIcon sx={{ fontSize: 40, color: "error.main", mr: 2 }} />
+                <Box>
+                  <Typography variant="h4" component="div">
+                    {superadminUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Superadmins
                   </Typography>
                 </Box>
               </Box>
@@ -313,9 +334,11 @@ const UserManagement = () => {
                           sx={{
                             mr: 2,
                             bgcolor:
-                              user.role === "admin"
-                                ? "secondary.main"
-                                : "primary.main",
+                              user.role === "superadmin"
+                                ? "error.main"
+                                : user.role === "admin"
+                                  ? "secondary.main"
+                                  : "primary.main",
                           }}
                         >
                           {user.name
@@ -329,7 +352,13 @@ const UserManagement = () => {
                     <TableCell>
                       <Chip
                         label={user.role}
-                        color={user.role === "admin" ? "secondary" : "primary"}
+                        color={
+                          user.role === "superadmin"
+                            ? "error"
+                            : user.role === "admin"
+                              ? "secondary"
+                              : "primary"
+                        }
                         variant="outlined"
                         size="small"
                       />
@@ -422,6 +451,9 @@ const UserManagement = () => {
             >
               <MenuItem value="student">Student</MenuItem>
               <MenuItem value="admin">Admin</MenuItem>
+              {currentUser?.role === "superadmin" && (
+                <MenuItem value="superadmin">Superadmin</MenuItem>
+              )}
             </Select>
           </FormControl>
         </DialogContent>
