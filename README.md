@@ -2,6 +2,11 @@
 
 A full-stack web application for managing events, registrations, and attendance with role-based access control.
 
+## Live Demo
+
+- **Frontend:** https://event-management-atlantis.vercel.app
+- **Backend API:** https://event-management-production-a5b2.up.railway.app
+
 ## Features
 
 - **JWT Authentication with Role-Based Access** — Secure user authentication with separate roles for students and administrators
