@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import {
   Box,
   Card,
@@ -37,7 +37,6 @@ import {
   Delete as DeleteIcon,
   AdminPanelSettings as AdminIcon,
   Person as PersonIcon,
-  Add as AddIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import axios from "axios";
@@ -60,11 +59,7 @@ const UserManagement = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [token]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -77,7 +72,11 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleEditUser = (user) => {
     setEditForm({

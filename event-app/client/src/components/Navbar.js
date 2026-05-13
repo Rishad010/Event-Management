@@ -1,5 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useContext, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -10,35 +10,34 @@ import {
   Menu,
   MenuItem,
   IconButton,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Event as EventIcon,
   Dashboard as DashboardIcon,
   QrCodeScanner as QrIcon,
-  AccountCircle,
   Logout,
-} from '@mui/icons-material';
-import { AuthContext } from '../context/AuthContext';
+} from "@mui/icons-material";
+import { AuthContext } from "../context/AuthContext";
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [navBackground, setNavBackground] = useState('transparent');
+  const [navBackground, setNavBackground] = useState("transparent");
 
   const handleScroll = () => {
     const show = window.scrollY > 50;
     if (show) {
-      setNavBackground('paper');
+      setNavBackground("paper");
     } else {
-      setNavBackground('transparent');
+      setNavBackground("transparent");
     }
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -52,18 +51,19 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
     handleClose();
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      elevation={navBackground === 'transparent' ? 0 : 1}
-      sx={{ 
-        backgroundColor: navBackground === 'transparent' ? 'transparent' : 'background.paper',
-        color: navBackground === 'transparent' ? 'white' : 'text.primary',
-        transition: 'background-color 0.3s, color 0.3s, box-shadow 0.3s',
+    <AppBar
+      position="fixed"
+      elevation={navBackground === "transparent" ? 0 : 1}
+      sx={{
+        backgroundColor:
+          navBackground === "transparent" ? "transparent" : "background.paper",
+        color: navBackground === "transparent" ? "white" : "text.primary",
+        transition: "background-color 0.3s, color 0.3s, box-shadow 0.3s",
       }}
     >
       <Toolbar>
@@ -72,7 +72,7 @@ const Navbar = () => {
           Event Manager
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Button
             color="inherit"
             component={Link}
@@ -82,7 +82,7 @@ const Navbar = () => {
             Events
           </Button>
 
-          {user && user.role === 'admin' && (
+          {user && user.role === "admin" && (
             <>
               <Button
                 color="inherit"
@@ -113,21 +113,25 @@ const Navbar = () => {
                 onClick={handleMenu}
                 color="inherit"
               >
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
-                  {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                <Avatar
+                  sx={{ width: 32, height: 32, bgcolor: "secondary.main" }}
+                >
+                  {user.name
+                    ? user.name.charAt(0).toUpperCase()
+                    : user.email.charAt(0).toUpperCase()}
                 </Avatar>
               </IconButton>
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
                 anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
+                  vertical: "bottom",
+                  horizontal: "right",
                 }}
                 keepMounted
                 transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
+                  vertical: "top",
+                  horizontal: "right",
                 }}
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
@@ -137,7 +141,11 @@ const Navbar = () => {
                     {user.name || user.email}
                   </Typography>
                 </MenuItem>
-                <MenuItem component={Link} to="/dashboard" onClick={handleClose}>
+                <MenuItem
+                  component={Link}
+                  to="/dashboard"
+                  onClick={handleClose}
+                >
                   <DashboardIcon sx={{ mr: 1 }} />
                   My Dashboard
                 </MenuItem>

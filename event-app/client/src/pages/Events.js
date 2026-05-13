@@ -24,7 +24,6 @@ import {
   LinearProgress,
 } from "@mui/material";
 import {
-  Event as EventIcon,
   LocationOn as LocationIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CheckCircleIcon,

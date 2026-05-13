@@ -18,9 +18,7 @@ import {
   CardMedia,
 } from "@mui/material";
 import {
-  Event as EventIcon,
   LocationOn as LocationIcon,
-  Schedule as ScheduleIcon,
   QrCode as QrIcon,
   Close as CloseIcon,
   History as HistoryIcon,
@@ -52,7 +50,7 @@ const StudentDashboard = () => {
             `${API_BASE}/registrations/my-registrations`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           setRegistrations(res.data);
         } catch (err) {
@@ -86,13 +84,13 @@ const StudentDashboard = () => {
   const now = new Date();
   // Filter out registrations with missing or null event
   const validRegistrations = registrations.filter(
-    (reg) => reg.event && reg.event.date
+    (reg) => reg.event && reg.event.date,
   );
   const upcomingEvents = validRegistrations.filter(
-    (reg) => new Date(reg.event.date) >= now
+    (reg) => new Date(reg.event.date) >= now,
   );
   const pastEvents = validRegistrations.filter(
-    (reg) => new Date(reg.event.date) < now
+    (reg) => new Date(reg.event.date) < now,
   );
 
   const renderEventCard = (registration) => {
@@ -148,7 +146,7 @@ const StudentDashboard = () => {
                     onClick={() =>
                       handleShowQr(
                         registration.qrCode,
-                        registration.event.title
+                        registration.event.title,
                       )
                     }
                   >

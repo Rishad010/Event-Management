@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import {
@@ -22,27 +22,17 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Snackbar,
   Skeleton,
-  Divider,
   Avatar,
   List,
   ListItem,
   ListItemText,
   ListItemAvatar,
-  Fab,
   Tooltip,
-  CircularProgress,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 import {
-  Dashboard as DashboardIcon,
   Event as EventIcon,
   People as PeopleIcon,
   QrCodeScanner as QrIcon,
@@ -51,10 +41,8 @@ import {
   Delete as DeleteIcon,
   Visibility as ViewIcon,
   TrendingUp as TrendingUpIcon,
-  PersonAdd as PersonAddIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
-  Download as DownloadIcon,
 } from "@mui/icons-material";
 import { AuthContext } from "../context/AuthContext";
 
@@ -64,7 +52,6 @@ const Dashboard = () => {
   const { token } = useContext(AuthContext);
   const [summary, setSummary] = useState([]);
   const [events, setEvents] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -75,49 +62,42 @@ const Dashboard = () => {
   const [createEventDialog, setCreateEventDialog] = useState(false);
   const [editEventDialog, setEditEventDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [exporting, setExporting] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
     location: "",
     date: "",
     image: null,
-    capacity: 50,
-    isCapacityEnabled: false,
   });
   const [newEventImage, setNewEventImage] = useState(null);
   const [editEventImage, setEditEventImage] = useState(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [token]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [summaryRes, eventsRes, usersRes] = await Promise.all([
+      const [summaryRes, eventsRes] = await Promise.all([
         axios.get(`${API_BASE}/registrations/summary`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get(`${API_BASE}/events`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${API_BASE}/auth/users`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
       ]);
 
       setSummary(summaryRes.data);
       setEvents(eventsRes.data);
-      setUsers(usersRes.data || []);
     } catch (err) {
       setError("Failed to load dashboard data");
       console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const handleCreateEvent = async () => {
     const formData = new FormData();
@@ -125,8 +105,6 @@ const Dashboard = () => {
     formData.append("description", newEvent.description);
     formData.append("location", newEvent.location);
     formData.append("date", newEvent.date);
-    formData.append("capacity", newEvent.capacity);
-    formData.append("isCapacityEnabled", newEvent.isCapacityEnabled);
     if (newEventImage) {
       formData.append("image", newEventImage);
     }
@@ -150,8 +128,6 @@ const Dashboard = () => {
         location: "",
         date: "",
         image: null,
-        capacity: 50,
-        isCapacityEnabled: false,
       });
       setNewEventImage(null);
       fetchDashboardData();
@@ -185,11 +161,6 @@ const Dashboard = () => {
     formData.append("description", editingEvent.description);
     formData.append("location", editingEvent.location);
     formData.append("date", editingEvent.date);
-    formData.append("capacity", editingEvent.capacity || 50);
-    formData.append(
-      "isCapacityEnabled",
-      editingEvent.isCapacityEnabled || false,
-    );
     if (editEventImage) {
       formData.append("image", editEventImage);
     }
@@ -242,40 +213,6 @@ const Dashboard = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
-  };
-
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const response = await axios.get(`${API_BASE}/registrations/export`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: "blob",
-      });
-
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "registrations.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      setSnackbar({
-        open: true,
-        message: "Export successful!",
-        severity: "success",
-      });
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.message || "Export failed",
-        severity: "error",
-      });
-    } finally {
-      setExporting(false);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -441,26 +378,9 @@ const Dashboard = () => {
       {/* Event Summary Table */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography variant="h6">Event Summary</Typography>
-            <Button
-              variant="outlined"
-              startIcon={
-                exporting ? <CircularProgress size={20} /> : <DownloadIcon />
-              }
-              onClick={handleExport}
-              disabled={exporting}
-            >
-              {exporting ? "Exporting..." : "Export to Excel"}
-            </Button>
-          </Box>
+          <Typography variant="h6" gutterBottom>
+            Event Summary
+          </Typography>
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>
@@ -701,39 +621,6 @@ const Dashboard = () => {
             InputLabelProps={{ shrink: true }}
             sx={{ mb: 2 }}
           />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={newEvent.isCapacityEnabled}
-                onChange={(e) =>
-                  setNewEvent({
-                    ...newEvent,
-                    isCapacityEnabled: e.target.checked,
-                  })
-                }
-              />
-            }
-            label="Enable capacity limit"
-            sx={{ mt: 2, mb: 1 }}
-          />
-          {newEvent.isCapacityEnabled && (
-            <TextField
-              margin="dense"
-              label="Capacity"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={newEvent.capacity}
-              onChange={(e) =>
-                setNewEvent({
-                  ...newEvent,
-                  capacity: Math.max(1, parseInt(e.target.value) || 50),
-                })
-              }
-              inputProps={{ min: 1 }}
-              sx={{ mb: 2 }}
-            />
-          )}
           <Button variant="contained" component="label" fullWidth>
             Upload Banner Image
             <input
@@ -835,39 +722,6 @@ const Dashboard = () => {
               <Typography variant="body2" sx={{ mt: 1 }}>
                 Current image: {editingEvent.image.split("/").pop()}
               </Typography>
-            )}
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editingEvent.isCapacityEnabled || false}
-                  onChange={(e) =>
-                    setEditingEvent({
-                      ...editingEvent,
-                      isCapacityEnabled: e.target.checked,
-                    })
-                  }
-                />
-              }
-              label="Enable capacity limit"
-              sx={{ mt: 2, mb: 1 }}
-            />
-            {editingEvent.isCapacityEnabled && (
-              <TextField
-                margin="dense"
-                label="Capacity"
-                type="number"
-                fullWidth
-                variant="outlined"
-                value={editingEvent.capacity || 50}
-                onChange={(e) =>
-                  setEditingEvent({
-                    ...editingEvent,
-                    capacity: Math.max(1, parseInt(e.target.value) || 50),
-                  })
-                }
-                inputProps={{ min: 1 }}
-                sx={{ mb: 2 }}
-              />
             )}
           </DialogContent>
           <DialogActions>
